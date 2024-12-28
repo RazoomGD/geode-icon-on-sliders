@@ -1,0 +1,72 @@
+{
+	"geode": "4.0.0",
+	"gd": {
+		"win": "2.2074",
+		"android": "2.2074",
+		"mac": "2.2074",
+		"ios": "2.2074"
+	},
+	"id": "razoom.icon_on_sliders",
+	"name": "Icon On Sliders",
+	"version": "v1.0.0",
+	"developer": "RaZooM",
+	"tags": ["customization"],
+	"links": {
+		"source": "https://github.com/RazoomGD/geode-icon-on-sliders",
+		"community": "https://discord.gg/wcWvtKHP8n"
+	},
+	"description": "Set your icon as a slider thumb",
+
+	"settings": {
+		"is-enabled": {
+			"type": "bool",
+			"name": "Enable",
+			"description": "Enable the mod",
+			"default": true
+		},
+
+		"title-1": {
+			"type": "title",
+			"name": "Example"
+		},
+		"slider-example-new": {
+			"name": "Example:",
+			"type": "custom:my-slider"
+		},
+
+		"title-2": {
+			"type": "title",
+			"name": "Settings"
+		},
+		"icon": {
+			"type": "string",
+			"name": "Icon",
+			"description": "The icon shown on slider",
+			"default": "8: Swing",
+			"one-of": ["1: Cube", "2: Ship", "3: Ball", "4: Ufo", "5: Wave", "6: Robot", "7: Spider", "8: Swing", "9: Jetpack"]
+		},
+		"force-glow": {
+			"type": "bool",
+			"name": "Force glow",
+			"description": "Enable glow on slider icon even if it is disabled for player",
+			"default": true
+		},
+
+		"title-3": {
+			"type": "title",
+			"name": "Affected sliders"
+		},
+		"affect-editor-slider": {
+			"type": "bool",
+			"name": "Editor position slider",
+			"description": "Whether the editor position slider is affected",
+			"default": true
+		},
+		"affect-trigger-sliders": {
+			"type": "bool",
+			"name": "Trigger sliders",
+			"description": "Whether the sliders in the triggers are affected",
+			"default": true
+		}
+	}
+}
