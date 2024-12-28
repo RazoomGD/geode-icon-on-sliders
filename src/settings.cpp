@@ -41,8 +41,7 @@ protected:
         m_menu->setContentWidth(210.f);
     
         // slider
-        m_slider = Slider::create(this, nullptr, (const char*) 64, "slidergroove.png", 
-            "sliderthumb.png", "sliderthumbsel.png", .77f); // arg 3 - geode wrong type
+        m_slider = Slider::create(this, nullptr, .77f);
         m_slider->setValue(.5f);
         m_menu->addChildAtPosition(m_slider, Anchor::Center);
 
@@ -69,8 +68,7 @@ protected:
             float value = m_slider->getValue();
             m_slider->removeFromParent(); // remove old slider
             // and replace it with the new one
-            m_slider = Slider::create(this, nullptr, (const char*) 64, "slidergroove.png", 
-                "sliderthumb.png", "sliderthumbsel.png", .77f); // arg 3 - geode wrong type
+            m_slider = Slider::create(this, nullptr, .77f);
             m_slider->setValue(value);
             m_menu->addChildAtPosition(m_slider, Anchor::Center);
 
