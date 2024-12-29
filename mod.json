@@ -58,8 +58,8 @@
 		},
 		"affect-editor-slider": {
 			"type": "bool",
-			"name": "Editor position slider",
-			"description": "Whether the editor position slider is affected",
+			"name": "Editor position and scale sliders",
+			"description": "Whether the editor position and scale sliders are affected",
 			"default": true
 		},
 		"affect-trigger-sliders": {

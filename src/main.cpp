@@ -29,7 +29,6 @@ struct {
 		}
 	} m_settings; 
 
-	bool m_isInEditor = false;
 } GLOBAL;
 
 
@@ -75,24 +74,6 @@ SimplePlayer* getPlayerFrame(IconType type, bool forceGlow) {
 }
 
 
-class $modify(LevelEditorLayer) {
-	// all I need is to detect when editor is opened and closed.
-	// I achieve this by using Fields constructor and destructor.
-	// It requires having at least one modified function and at least 
-	// one field (with at least one usage) in Fields so that 
-	// nothing will be cleared during the compilation.
-	struct Fields {
-		char a = 1;
-		Fields() {GLOBAL.m_isInEditor = true;}
-		~Fields() {GLOBAL.m_isInEditor = false;}
-	};
-	bool init(GJGameLevel* p0, bool p1) {
-		if (m_fields->a == 0){m_fields->a = 1;};
-		return LevelEditorLayer::init(p0, p1);
-	}
-};
-
-
 class $modify(Slider) {
 	void upgradeSlider() {
 		auto thumb = this->getThumb();
@@ -119,7 +100,7 @@ class $modify(Slider) {
 		}
 		if(!GLOBAL.m_settings.m_isEnabled) return true;
 
-		if(GLOBAL.m_isInEditor) {
+		if(GameManager::sharedState()->m_levelEditorLayer != nullptr) {
 			// we are in the editor now
 			if (p4 != 0) {
 				if (std::strcmp(p4, "sliderthumb.png") == 0) {
