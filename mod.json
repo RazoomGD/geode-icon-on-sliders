@@ -1,5 +1,5 @@
 {
-	"geode": "4.0.0",
+	"geode": "4.2.0",
 	"gd": {
 		"win": "2.2074",
 		"android": "2.2074",
@@ -8,7 +8,7 @@
 	},
 	"id": "razoom.icon_on_sliders",
 	"name": "Icon On Sliders",
-	"version": "v1.0.2",
+	"version": "v1.1.0",
 	"developer": "RaZooM",
 	"tags": ["customization"],
 	"links": {
@@ -42,8 +42,14 @@
 			"type": "string",
 			"name": "Icon",
 			"description": "The icon shown on slider",
-			"default": "8: Swing",
+			"default": "3: Ball",
 			"one-of": ["1: Cube", "2: Ship", "3: Ball", "4: Ufo", "5: Wave", "6: Robot", "7: Spider", "8: Swing", "9: Jetpack"]
+		},
+		"animate": {
+			"type": "bool",
+			"name": "Animate",
+			"description": "Animate icon when moving slider\n<cy>Note:</c> currently works only for <cp>ball</c>, <cp>robot</c> and <cp>spider</c>.",
+			"default": true
 		},
 		"force-glow": {
 			"type": "bool",
