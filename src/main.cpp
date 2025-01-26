@@ -15,16 +15,15 @@ struct {
 		IconType m_iconType;
 		bool m_affectEditorSlider;
 		bool m_affectTriggerSliders;
-		bool m_forceGlow;
 		bool m_animate;
+		int m_glowMode; // 1 - default, 2 - on touch, 3 - force
 		short m_updateId = 1; // needed for slider preview in settings
 		bool isAnimated() {
-			return m_animate && (m_iconType == IconType::Ball || 
+			return m_animate && (m_iconType == IconType::Cube || m_iconType == IconType::Ball || 
 				m_iconType == IconType::Robot || m_iconType == IconType::Spider);
 		}
 		void update() {
 			m_isEnabled = Mod::get()->getSettingValue<bool>("is-enabled");
-			m_forceGlow = Mod::get()->getSettingValue<bool>("force-glow");
 			m_animate = Mod::get()->getSettingValue<bool>("animate");
 			m_affectEditorSlider = Mod::get()->getSettingValue<bool>("affect-editor-slider");
 			m_affectTriggerSliders = Mod::get()->getSettingValue<bool>("affect-trigger-sliders");
@@ -32,6 +31,9 @@ struct {
 			int iconType = std::atoi(Mod::get()->getSettingValue<std::string>("icon").c_str());
 			iconType = (iconType <= 0 || iconType >= 10) ? 1 : iconType; // validate
 			m_iconType = static_cast<IconType>(iconType - 1); // 0 <= IconType <= 8
+
+			m_glowMode = std::atoi(Mod::get()->getSettingValue<std::string>("glow-mode").c_str());
+			m_glowMode = (m_glowMode <= 0 || m_glowMode >= 4) ? 1 : m_glowMode; // validate
 
 			m_updateId++;
 		}
@@ -70,7 +72,7 @@ int getPlayerIconIndex(IconType type) {
 }
 
 // create player icon and put it on base node
-SimplePlayer* getPlayerFrame(IconType type, bool forceGlow, CCNode* base) {
+SimplePlayer* getPlayerFrame(IconType type, bool forceGlow, bool forceNoGlow, CCNode* base) {
     auto gm = GameManager::sharedState();
 	auto col1 = gm->colorForIdx(gm->getPlayerColor());
 	auto col2 = gm->colorForIdx(gm->getPlayerColor2());
@@ -83,7 +85,7 @@ SimplePlayer* getPlayerFrame(IconType type, bool forceGlow, CCNode* base) {
 	player->setSecondColor(col2);
 	player->setGlowOutline(col3);
 	player->enableCustomGlowColor(col3);
-	if(!gm->getPlayerGlow() && !forceGlow) player->disableGlowOutline();
+	if(!gm->getPlayerGlow() && !forceGlow || forceNoGlow) player->disableGlowOutline();
 	
 	if (type == IconType::Ship || type == IconType::Ufo || type == IconType::Jetpack) {
 		// put the cube into the vehicle
@@ -94,7 +96,7 @@ SimplePlayer* getPlayerFrame(IconType type, bool forceGlow, CCNode* base) {
 		cube->setSecondColor(col2);
 		cube->setGlowOutline(col3);
 		cube->enableCustomGlowColor(col3);
-		if(!gm->getPlayerGlow() && !forceGlow) cube->disableGlowOutline();
+		if(!gm->getPlayerGlow() && !forceGlow || forceNoGlow) cube->disableGlowOutline();
 
 		// fix glow layering and position all sprites correctly
 		CCPoint posCube, posVehicle;
@@ -150,13 +152,15 @@ class $modify(MySlider, Slider) {
 		auto thumb = this->getThumb();
 
 		auto node = CCSprite::create();
-		auto player = getPlayerFrame(GLOBAL.m_settings.m_iconType, GLOBAL.m_settings.m_forceGlow, node);
+		auto player = getPlayerFrame(GLOBAL.m_settings.m_iconType, 
+			GLOBAL.m_settings.m_glowMode == 3, GLOBAL.m_settings.m_glowMode == 2, node);
 		node->setContentSize(thumb->getContentSize());
 		node->setScale(.9f);
 		node->setPosition(thumb->getContentSize()/2);
 
 		auto node2 = CCSprite::create();
-		auto player2 = getPlayerFrame(GLOBAL.m_settings.m_iconType, GLOBAL.m_settings.m_forceGlow, node2);
+		auto player2 = getPlayerFrame(GLOBAL.m_settings.m_iconType, 
+			GLOBAL.m_settings.m_glowMode == 3 || GLOBAL.m_settings.m_glowMode == 2, false, node2);
 		node2->setContentSize(thumb->getContentSize());
 		node2->setScale(.9f);
 		node2->setPosition(thumb->getContentSize()/2);
