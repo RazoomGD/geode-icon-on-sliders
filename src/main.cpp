@@ -149,13 +149,13 @@ class $modify(MySlider, Slider) {
 
 		auto thumb = this->getThumb();
 
-		auto node = CCNode::create();
+		auto node = CCSprite::create();
 		auto player = getPlayerFrame(GLOBAL.m_settings.m_iconType, GLOBAL.m_settings.m_forceGlow, node);
 		node->setContentSize(thumb->getContentSize());
 		node->setScale(.9f);
 		node->setPosition(thumb->getContentSize()/2);
 
-		auto node2 = CCNode::create();
+		auto node2 = CCSprite::create();
 		auto player2 = getPlayerFrame(GLOBAL.m_settings.m_iconType, GLOBAL.m_settings.m_forceGlow, node2);
 		node2->setContentSize(thumb->getContentSize());
 		node2->setScale(.9f);
