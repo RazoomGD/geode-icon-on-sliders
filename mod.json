@@ -8,7 +8,7 @@
 	},
 	"id": "razoom.icon_on_sliders",
 	"name": "Icon On Sliders",
-	"version": "v1.1.1",
+	"version": "v1.1.2",
 	"developer": "RaZooM",
 	"tags": ["customization"],
 	"links": {
@@ -48,13 +48,13 @@
 		"animate": {
 			"type": "bool",
 			"name": "Animate",
-			"description": "Animate icon when moving slider\n<cy>Note:</c> currently works only for <cp>ball</c>, <cp>robot</c> and <cp>spider</c>.",
+			"description": "Animate icon when moving slider\n<cy>Note:</c> currently there are animations only for <cp>cube</c>, <cp>ball</c>, <cp>robot</c> and <cp>spider</c>.",
 			"default": true
 		},
 		"glow-mode": {
 			"type": "string",
 			"name": "Glow",
-			"description": "How the <cy>glow</c> works for the icon on slider.\n<cp>1. Default:</c> use player settings.\n<cp>2. On touch:</c> enable glow only when touching the slider.\n<cp>3. Force:<c> enable glow on slider icon even if it is disabled for player",
+			"description": "How the <cy>glow</c> works for the icon on slider.\n<cp>1. Default:</c> use player settings.\n<cp>2. On touch:</c> enable glow only when touching the slider.\n<cp>3. Force:</c> enable glow on slider icon even if it is disabled for player.",
 			"default": "3: Force glow",
 			"one-of": ["1: Default", "2: On touch", "3: Force glow"]
 		},
