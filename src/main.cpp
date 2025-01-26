@@ -44,6 +44,23 @@ struct {
 
 #include "settings.cpp"
 
+enum class MoveState {None=0, Begin, End, Middle};
+
+struct MySlider;
+
+// default parameters for sliders
+struct SliderInfo : CCObject {
+	SEL_MenuHandler m_defaultSelector;
+	MySlider* m_slider;
+	MoveState m_moveState;
+	SliderInfo(SEL_MenuHandler defaultSelector, MySlider* slider) {
+		m_defaultSelector = defaultSelector;
+		m_slider = slider;
+		m_moveState = MoveState::None;
+		this->autorelease();
+	}
+};
+
 
 $on_mod(Loaded) {
 	GLOBAL.m_settings.update();
@@ -122,25 +139,10 @@ SimplePlayer* getPlayerFrame(IconType type, bool forceGlow, bool forceNoGlow, CC
 }
 
 
-struct MySlider;
-
-// default parameters for sliders
-struct SliderInfo : CCObject {
-	SEL_MenuHandler m_defaultSelector;
-	MySlider* m_slider;
-	int m_moveState; // 0 - move middle, 1 - move start, 2 - move end
-	SliderInfo(SEL_MenuHandler defaultSelector, MySlider* slider) {
-		m_defaultSelector = defaultSelector;
-		m_slider = slider;
-		m_moveState = 0;
-		this->autorelease();
-	}
-};
-
-
 class $modify(MySlider, Slider) {
 	struct Fields {
 		bool m_isAffected = false;
+		float m_oldValue; // value before move
 		Ref<SimplePlayer> m_staticImage;
 		Ref<SimplePlayer> m_onMoveImage;
 		IconType m_icon;
@@ -222,7 +224,7 @@ class $modify(MySlider, Slider) {
 	void setValue(float val) {
 		Slider::setValue(val);
 		if (GLOBAL.m_settings.isAnimated() && m_fields->m_isAffected) {
-			setAnimation(this, this->getThumb(), 0);
+			setAnimation(this, this->getThumb(), MoveState::None);
 		}
 	}
 
@@ -231,21 +233,45 @@ class $modify(MySlider, Slider) {
 		const auto thumb = static_cast<SliderThumb*>(sender);
 		const auto sliderInfo = static_cast<SliderInfo*>(thumb->getUserObject(USER_OBJ_ID));
 		if (!sliderInfo) return;
-
 		if (auto selector = sliderInfo->m_defaultSelector) {
 			(this->*selector)(sender); // call original selector
 		}
 		setAnimation(sliderInfo->m_slider, thumb, sliderInfo->m_moveState);
-		sliderInfo->m_moveState = 0;
+		sliderInfo->m_moveState = MoveState::Middle;
 	}
 
-	// control animation of a slider
-	// action: 0 - ignore, 1 - start anim, 2 - finish anim
-	void setAnimation(MySlider* slider, SliderThumb* thumb, int action) {
+	// control animation of a slider (action = MoveState::None - ignore the anim)
+	void setAnimation(MySlider* slider, SliderThumb* thumb, MoveState action) {
 		const float val = thumb->getValue(); // 0 <= val <= 1
 		const float delay = 0.08;
+		const float maxAngle = 20; 
 
 		switch (slider->m_fields->m_icon) {
+			case IconType::Cube: {
+				if (action == MoveState::Middle) {
+					float speed = slider->getValue() - slider->m_fields->m_oldValue;
+					int sign = speed >= 0 ? 1 : -1;
+					float angle = sign * maxAngle * std::min(1.f, speed * sign * 50.f);
+					// slider->m_fields->m_onMoveImage->setRotation(maxAngle * sign);
+
+					slider->m_fields->m_onMoveImage->runAction(CCSequence::create(
+						CCRotateTo::create(delay, angle), nullptr)); // smooth rotation
+
+					// log::debug("count {}", slider->m_fields->m_onMoveImage->numberOfRunningActions());
+
+					// special action that resets rotation when slider is not moved
+					slider->m_fields->m_onMoveImage->stopActionByTag(42);
+					auto special = CCSequence::create(
+						CCDelayTime::create(delay), CCRotateTo::create(delay*2, 0), nullptr);
+					special->setTag(42);
+					slider->m_fields->m_onMoveImage->runAction(special);
+					
+				} else if (action == MoveState::Begin || action == MoveState::End) {
+					slider->m_fields->m_onMoveImage->stopAllActions();
+					slider->m_fields->m_onMoveImage->setRotation(0);
+				}
+				break;
+			}
 			case IconType::Ball: {
 				auto groove = slider->m_groove;
 				float scaleRatio = (groove) ? groove->getScaleX() / groove->getScaleY() : 1.f;
@@ -254,21 +280,21 @@ class $modify(MySlider, Slider) {
 				break;
 			}
 			case IconType::Robot: {
-				if (action == 1) { // start
+				if (action == MoveState::Begin) { // start
 					slider->m_fields->m_onMoveImage->m_robotSprite->tweenToAnimation("fall_loop", delay);
 					slider->m_fields->m_staticImage->m_robotSprite->tweenToAnimation("fall_loop", delay);
-				} else if (action == 2) { // finish
+				} else if (action == MoveState::End) { // finish
 					slider->m_fields->m_onMoveImage->m_robotSprite->tweenToAnimation("idle", delay);
 					slider->m_fields->m_staticImage->m_robotSprite->tweenToAnimation("idle", delay);
 				}
 				break;
 			}
 			case IconType::Spider: {
-				if (action == 1) { // start
+				if (action == MoveState::Begin) { // start
 					// todo: ask RobTop to fix spider leg animation transition bug
 					slider->m_fields->m_onMoveImage->m_spiderSprite->tweenToAnimation("fall_loop", delay);
 					slider->m_fields->m_staticImage->m_spiderSprite->tweenToAnimation("fall_loop", delay);
-				} else if (action == 2) { // finish
+				} else if (action == MoveState::End) { // finish
 					slider->m_fields->m_onMoveImage->m_spiderSprite->tweenToAnimation("idle", delay);
 					slider->m_fields->m_staticImage->m_spiderSprite->tweenToAnimation("idle", delay);
 				}
@@ -285,15 +311,23 @@ class $modify(SliderTouchLogic) {
 	$override
 	bool ccTouchBegan(CCTouch* p0, CCEvent* p1) {
 		if (auto obj = static_cast<SliderInfo*>(m_thumb->getUserObject(USER_OBJ_ID))) {
-			obj->m_moveState = 1;
+			obj->m_moveState = MoveState::Begin;
 		}
 		return SliderTouchLogic::ccTouchBegan(p0, p1);
 	}
 
 	$override
+	void ccTouchMoved(CCTouch* p0, CCEvent* p1) {
+		if (auto obj = static_cast<SliderInfo*>(m_thumb->getUserObject(USER_OBJ_ID))) {
+			obj->m_slider->m_fields->m_oldValue = obj->m_slider->getValue();
+		}
+		SliderTouchLogic::ccTouchMoved(p0, p1);
+	}
+
+	$override
 	void ccTouchEnded(CCTouch* p0, CCEvent* p1) {
 		if (auto obj = static_cast<SliderInfo*>(m_thumb->getUserObject(USER_OBJ_ID))) {
-			obj->m_moveState = 2;
+			obj->m_moveState = MoveState::End;
 		}
 		SliderTouchLogic::ccTouchEnded(p0, p1);
 	}
