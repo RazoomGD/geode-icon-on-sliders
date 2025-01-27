@@ -1,3 +1,7 @@
+# 1.1.3
+- add "lighten on touch" option
+
+
 # 1.1.2
 - add cube animation
 - add more glow options

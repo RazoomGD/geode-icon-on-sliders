@@ -17,6 +17,7 @@ struct {
 		bool m_affectTriggerSliders;
 		bool m_animate;
 		int m_glowMode; // 1 - default, 2 - on touch, 3 - force
+		bool m_lightenOnTouch;
 		short m_updateId = 1; // needed for slider preview in settings
 		bool isAnimated() {
 			return m_animate && (m_iconType == IconType::Cube || m_iconType == IconType::Ball || 
@@ -25,6 +26,7 @@ struct {
 		void update() {
 			m_isEnabled = Mod::get()->getSettingValue<bool>("is-enabled");
 			m_animate = Mod::get()->getSettingValue<bool>("animate");
+			m_lightenOnTouch = Mod::get()->getSettingValue<bool>("lighten-touch");
 			m_affectEditorSlider = Mod::get()->getSettingValue<bool>("affect-editor-slider");
 			m_affectTriggerSliders = Mod::get()->getSettingValue<bool>("affect-trigger-sliders");
 
@@ -88,12 +90,26 @@ int getPlayerIconIndex(IconType type) {
     }
 }
 
+void lightenColor(ccColor3B* col) {
+	const float add = 105, mul = 0.3;
+	// lower saturation, increase brightness
+	col->r = std::min(255, (int)col->r - (int)(col->r * mul) + (int)add);
+	col->g = std::min(255, (int)col->g - (int)(col->g * mul) + (int)add);
+	col->b = std::min(255, (int)col->b - (int)(col->b * mul) + (int)add);
+}
+
 // create player icon and put it on base node
-SimplePlayer* getPlayerFrame(IconType type, bool forceGlow, bool forceNoGlow, CCNode* base) {
+SimplePlayer* getPlayerFrame(IconType type, bool forceGlow, bool forceNoGlow, 
+								bool lighterCol, CCNode* base) {
     auto gm = GameManager::sharedState();
 	auto col1 = gm->colorForIdx(gm->getPlayerColor());
 	auto col2 = gm->colorForIdx(gm->getPlayerColor2());
 	auto col3 = gm->colorForIdx(gm->getPlayerGlowColor());
+
+	if (lighterCol) {
+		lightenColor(&col1);
+		lightenColor(&col2);
+	}
 
 	SimplePlayer* player = SimplePlayer::create(0);
 	base->addChild(player);
@@ -155,14 +171,15 @@ class $modify(MySlider, Slider) {
 
 		auto node = CCSprite::create();
 		auto player = getPlayerFrame(GLOBAL.m_settings.m_iconType, 
-			GLOBAL.m_settings.m_glowMode == 3, GLOBAL.m_settings.m_glowMode == 2, node);
+			GLOBAL.m_settings.m_glowMode == 3, GLOBAL.m_settings.m_glowMode == 2, false, node);
 		node->setContentSize(thumb->getContentSize());
 		node->setScale(.9f);
 		node->setPosition(thumb->getContentSize()/2);
 
 		auto node2 = CCSprite::create();
 		auto player2 = getPlayerFrame(GLOBAL.m_settings.m_iconType, 
-			GLOBAL.m_settings.m_glowMode == 3 || GLOBAL.m_settings.m_glowMode == 2, false, node2);
+			GLOBAL.m_settings.m_glowMode == 3 || GLOBAL.m_settings.m_glowMode == 2, 
+			false, GLOBAL.m_settings.m_lightenOnTouch, node2);
 		node2->setContentSize(thumb->getContentSize());
 		node2->setScale(.9f);
 		node2->setPosition(thumb->getContentSize()/2);
