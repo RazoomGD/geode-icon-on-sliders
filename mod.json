@@ -8,7 +8,7 @@
 	},
 	"id": "razoom.icon_on_sliders",
 	"name": "Icon On Sliders",
-	"version": "v1.1.3",
+	"version": "v1.1.4",
 	"developer": "RaZooM",
 	"tags": ["customization"],
 	"links": {
@@ -42,13 +42,13 @@
 			"type": "string",
 			"name": "Icon",
 			"description": "The icon shown on slider",
-			"default": "3: Ball",
+			"default": "9: Jetpack",
 			"one-of": ["1: Cube", "2: Ship", "3: Ball", "4: Ufo", "5: Wave", "6: Robot", "7: Spider", "8: Swing", "9: Jetpack"]
 		},
 		"animate": {
 			"type": "bool",
 			"name": "Animate",
-			"description": "Animate icon when moving slider\n<cy>Note:</c> currently there are animations only for <cp>cube</c>, <cp>ball</c>, <cp>robot</c> and <cp>spider</c>.",
+			"description": "Animate icon when moving slider\n<cy>Note:</c> currently there are no animations for swing and wave.",
 			"default": true
 		},
 		"glow-mode": {
@@ -62,7 +62,7 @@
 			"type": "bool",
 			"name": "Lighten on touch",
 			"description": "Make the icon color lighter when touching the slider.\n<cj>Note:</c> This may be more or less noticeable depending on the icon colors",
-			"default": false
+			"default": true
 		},
 
 		"title-3": {

@@ -1,3 +1,7 @@
+# 1.1.4
+- add jetpack, ufo and ship animations
+
+
 # 1.1.3
 - add "lighten on touch" option
 

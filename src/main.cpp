@@ -20,8 +20,7 @@ struct {
 		bool m_lightenOnTouch;
 		short m_updateId = 1; // needed for slider preview in settings
 		bool isAnimated() {
-			return m_animate && (m_iconType == IconType::Cube || m_iconType == IconType::Ball || 
-				m_iconType == IconType::Robot || m_iconType == IconType::Spider);
+			return m_animate && (m_iconType != IconType::Wave && m_iconType != IconType::Swing);
 		}
 		void update() {
 			m_isEnabled = Mod::get()->getSettingValue<bool>("is-enabled");
@@ -161,6 +160,7 @@ class $modify(MySlider, Slider) {
 		float m_oldValue; // value before move
 		Ref<SimplePlayer> m_staticImage;
 		Ref<SimplePlayer> m_onMoveImage;
+		Ref<CCNode> m_onMoveBaseNode;
 		IconType m_icon;
 	};
 
@@ -169,28 +169,35 @@ class $modify(MySlider, Slider) {
 
 		auto thumb = this->getThumb();
 
+		// SliderThumb -> Base -> Node -> SimplePlayer
+
+		auto base = CCSprite::create();
 		auto node = CCSprite::create();
 		auto player = getPlayerFrame(GLOBAL.m_settings.m_iconType, 
 			GLOBAL.m_settings.m_glowMode == 3, GLOBAL.m_settings.m_glowMode == 2, false, node);
-		node->setContentSize(thumb->getContentSize());
+		base->setContentSize(thumb->getContentSize());
 		node->setScale(.9f);
+		base->addChild(node);
 		node->setPosition(thumb->getContentSize()/2);
 
+		auto base2 = CCSprite::create();
 		auto node2 = CCSprite::create();
 		auto player2 = getPlayerFrame(GLOBAL.m_settings.m_iconType, 
 			GLOBAL.m_settings.m_glowMode == 3 || GLOBAL.m_settings.m_glowMode == 2, 
 			false, GLOBAL.m_settings.m_lightenOnTouch, node2);
-		node2->setContentSize(thumb->getContentSize());
+		base2->setContentSize(thumb->getContentSize());
 		node2->setScale(.9f);
+		base2->addChild(node2);
 		node2->setPosition(thumb->getContentSize()/2);
 
 		// thumb->setDisabledImage(player); // invisible (unused)
-		thumb->setNormalImage(node); // static
-		thumb->setSelectedImage(node2); // on move
+		thumb->setNormalImage(base); // static
+		thumb->setSelectedImage(base2); // on move
 
 		m_fields->m_staticImage = player;
 		m_fields->m_onMoveImage = player2;
 		m_fields->m_icon = GLOBAL.m_settings.m_iconType;
+		m_fields->m_onMoveBaseNode = node2;
 	}
 
 	// p2 - ???, p3 - groove texture, p4 - static texture, p5 - selected texture
@@ -261,31 +268,33 @@ class $modify(MySlider, Slider) {
 	void setAnimation(MySlider* slider, SliderThumb* thumb, MoveState action) {
 		const float val = thumb->getValue(); // 0 <= val <= 1
 		const float delay = 0.08;
-		const float maxAngle = 20; 
+		float maxAngle = 20; 
 
 		switch (slider->m_fields->m_icon) {
-			case IconType::Cube: {
+			case IconType::Ship: {maxAngle *= -1;}
+			case IconType::Cube:
+			case IconType::Ufo:
+			case IconType::Jetpack: {
 				if (action == MoveState::Middle) {
 					float speed = slider->getValue() - slider->m_fields->m_oldValue;
 					int sign = speed >= 0 ? 1 : -1;
 					float angle = sign * maxAngle * std::min(1.f, speed * sign * 50.f);
-					// slider->m_fields->m_onMoveImage->setRotation(maxAngle * sign);
 
-					slider->m_fields->m_onMoveImage->runAction(CCSequence::create(
+					slider->m_fields->m_onMoveBaseNode->runAction(CCSequence::create(
 						CCRotateTo::create(delay, angle), nullptr)); // smooth rotation
 
-					// log::debug("count {}", slider->m_fields->m_onMoveImage->numberOfRunningActions());
+					// log::debug("count {}", slider->m_fields->m_onMoveBaseNode->numberOfRunningActions());
 
 					// special action that resets rotation when slider is not moved
-					slider->m_fields->m_onMoveImage->stopActionByTag(42);
+					slider->m_fields->m_onMoveBaseNode->stopActionByTag(42);
 					auto special = CCSequence::create(
 						CCDelayTime::create(delay), CCRotateTo::create(delay*2, 0), nullptr);
 					special->setTag(42);
-					slider->m_fields->m_onMoveImage->runAction(special);
+					slider->m_fields->m_onMoveBaseNode->runAction(special);
 					
 				} else if (action == MoveState::Begin || action == MoveState::End) {
-					slider->m_fields->m_onMoveImage->stopAllActions();
-					slider->m_fields->m_onMoveImage->setRotation(0);
+					slider->m_fields->m_onMoveBaseNode->stopAllActions();
+					slider->m_fields->m_onMoveBaseNode->setRotation(0);
 				}
 				break;
 			}
