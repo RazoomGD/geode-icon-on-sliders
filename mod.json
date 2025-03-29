@@ -1,5 +1,5 @@
 {
-	"geode": "4.2.0",
+	"geode": "4.3.1",
 	"gd": {
 		"win": "2.2074",
 		"android": "2.2074",
@@ -8,7 +8,7 @@
 	},
 	"id": "razoom.icon_on_sliders",
 	"name": "Icon On Sliders",
-	"version": "v1.1.4",
+	"version": "v1.1.5",
 	"developer": "RaZooM",
 	"tags": ["customization"],
 	"links": {
@@ -42,13 +42,13 @@
 			"type": "string",
 			"name": "Icon",
 			"description": "The icon shown on slider",
-			"default": "9: Jetpack",
+			"default": "1: Cube",
 			"one-of": ["1: Cube", "2: Ship", "3: Ball", "4: Ufo", "5: Wave", "6: Robot", "7: Spider", "8: Swing", "9: Jetpack"]
 		},
 		"animate": {
 			"type": "bool",
 			"name": "Animate",
-			"description": "Animate icon when moving slider\n<cy>Note:</c> currently there are no animations for swing and wave.",
+			"description": "Animate icon when moving slider",
 			"default": true
 		},
 		"glow-mode": {
@@ -63,6 +63,20 @@
 			"name": "Lighten on touch",
 			"description": "Make the icon color lighter when touching the slider.\n<cj>Note:</c> This may be more or less noticeable depending on the icon colors",
 			"default": true
+		},
+		"anim-strength": {
+			"type": "float",
+			"default": 1.0,
+			"max": 2.0,
+			"min": 0.1,
+			"name": "Animation strength",
+			"description": "(related to the <cp>cube</c>, <cp>ship</c>, <cp>ufo</c>, <cp>swing</c> and <cp>jetpack</c> animations)\nHow much the icon tilts when moving.",
+			"control": {
+				"slider": false,
+				"arrows": true,
+				"arrow-step": 0.1,
+				"input": true
+			}
 		},
 
 		"title-3": {

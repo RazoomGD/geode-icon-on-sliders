@@ -1,3 +1,8 @@
+# 1.1.5
+- add swing animation
+- add "animation strength" option
+- support for <cp>More Icons</c> mod
+
 # 1.1.4
 - add jetpack, ufo and ship animations
 

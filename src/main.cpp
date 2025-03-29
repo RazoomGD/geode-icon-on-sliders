@@ -5,9 +5,32 @@ using namespace geode::prelude;
 #include <Geode/modify/Slider.hpp>
 #include <Geode/modify/SliderTouchLogic.hpp>
 #include <Geode/loader/SettingV3.hpp>
+#include <Geode/loader/Dispatch.hpp>
 
 // common user object id for this mod (IOS = icon on sliders)
 #define USER_OBJ_ID "IOS_obj"
+
+// more icons support
+using MoreIconsSimplePlayerEvent = geode::DispatchEvent<SimplePlayer*, std::string, IconType>;
+
+// is player using icon from "more icons"
+static std::string moreIconsGetActiveIcon(IconType type) {
+	if (!Loader::get()->isModLoaded("hiimjustin000.more_icons")) return "";
+	std::string savedType;
+	switch (type) {
+		case IconType::Cube: savedType = "icon"; break;
+		case IconType::Ship: savedType = "ship"; break;
+		case IconType::Ball: savedType = "ball"; break;
+		case IconType::Ufo: savedType = "ufo"; break;
+		case IconType::Wave: savedType = "wave"; break;
+		case IconType::Robot: savedType = "robot"; break;
+		case IconType::Spider: savedType = "spider"; break;
+		case IconType::Swing: savedType = "swing"; break;
+		case IconType::Jetpack: savedType = "jetpack"; break;
+		default: return "";
+	}
+	return Loader::get()->getLoadedMod("hiimjustin000.more_icons")->getSavedValue<std::string>(savedType, "");
+}
 
 struct {
 	struct {
@@ -18,16 +41,21 @@ struct {
 		bool m_animate;
 		int m_glowMode; // 1 - default, 2 - on touch, 3 - force
 		bool m_lightenOnTouch;
+		float m_animStrength;
+
 		short m_updateId = 1; // needed for slider preview in settings
+
 		bool isAnimated() {
-			return m_animate && (m_iconType != IconType::Wave && m_iconType != IconType::Swing);
+			return m_animate && (m_iconType != IconType::Wave);
 		}
+
 		void update() {
 			m_isEnabled = Mod::get()->getSettingValue<bool>("is-enabled");
 			m_animate = Mod::get()->getSettingValue<bool>("animate");
 			m_lightenOnTouch = Mod::get()->getSettingValue<bool>("lighten-touch");
 			m_affectEditorSlider = Mod::get()->getSettingValue<bool>("affect-editor-slider");
 			m_affectTriggerSliders = Mod::get()->getSettingValue<bool>("affect-trigger-sliders");
+			m_animStrength = Mod::get()->getSettingValue<double>("anim-strength");
 
 			int iconType = std::atoi(Mod::get()->getSettingValue<std::string>("icon").c_str());
 			iconType = (iconType <= 0 || iconType >= 10) ? 1 : iconType; // validate
@@ -98,8 +126,7 @@ void lightenColor(ccColor3B* col) {
 }
 
 // create player icon and put it on base node
-SimplePlayer* getPlayerFrame(IconType type, bool forceGlow, bool forceNoGlow, 
-								bool lighterCol, CCNode* base) {
+SimplePlayer* getPlayerFrame(IconType type, bool forceGlow, bool forceNoGlow, bool lighterCol, CCNode* base) {
     auto gm = GameManager::sharedState();
 	auto col1 = gm->colorForIdx(gm->getPlayerColor());
 	auto col2 = gm->colorForIdx(gm->getPlayerColor2());
@@ -112,7 +139,17 @@ SimplePlayer* getPlayerFrame(IconType type, bool forceGlow, bool forceNoGlow,
 
 	SimplePlayer* player = SimplePlayer::create(0);
 	base->addChild(player);
-	player->updatePlayerFrame(getPlayerIconIndex(type), type);
+
+	std::string moreIconsName = moreIconsGetActiveIcon(type);
+	if (!moreIconsName.empty()) {
+		MoreIconsSimplePlayerEvent("hiimjustin000.more_icons/simple-player", player, moreIconsName, type).post();
+		if (!player->getUserObject("hiimjustin000.more_icons/name")) {
+			player->updatePlayerFrame(getPlayerIconIndex(type), type);
+		}
+	} else {
+		player->updatePlayerFrame(getPlayerIconIndex(type), type);
+	}
+
 	player->setColor(col1);
 	player->setSecondColor(col2);
 	player->setGlowOutline(col3);
@@ -123,7 +160,17 @@ SimplePlayer* getPlayerFrame(IconType type, bool forceGlow, bool forceNoGlow,
 		// put the cube into the vehicle
 		SimplePlayer* cube = SimplePlayer::create(0);
 		base->addChild(cube, -1);
-		cube->updatePlayerFrame(gm->getPlayerFrame(), IconType::Cube);
+
+		moreIconsName = moreIconsGetActiveIcon(IconType::Cube);
+		if (!moreIconsName.empty()) {
+			MoreIconsSimplePlayerEvent("hiimjustin000.more_icons/simple-player", cube, moreIconsName, IconType::Cube).post();
+			if (!cube->getUserObject("hiimjustin000.more_icons/name")) {
+				cube->updatePlayerFrame(gm->getPlayerFrame(), IconType::Cube);
+			}
+		} else {
+			cube->updatePlayerFrame(gm->getPlayerFrame(), IconType::Cube);
+		}
+
 		cube->setColor(col1);
 		cube->setSecondColor(col2);
 		cube->setGlowOutline(col3);
@@ -234,7 +281,7 @@ class $modify(MySlider, Slider) {
 
 		// replace selector if this slider needs to be animated
 		if (GLOBAL.m_settings.isAnimated() && m_fields->m_isAffected) {
-			auto thumb = this->getThumb();
+			auto thumb = getThumb();
 			auto sliderInfo = new SliderInfo(thumb->m_pfnSelector, this);
 			thumb->setUserObject(USER_OBJ_ID, sliderInfo);
 			thumb->m_pfnSelector = menu_selector(MySlider::onMoveAnimate);
@@ -248,7 +295,7 @@ class $modify(MySlider, Slider) {
 	void setValue(float val) {
 		Slider::setValue(val);
 		if (GLOBAL.m_settings.isAnimated() && m_fields->m_isAffected) {
-			setAnimation(this, this->getThumb(), MoveState::None);
+			setAnimation(this, getThumb(), MoveState::None);
 		}
 	}
 
@@ -268,17 +315,18 @@ class $modify(MySlider, Slider) {
 	void setAnimation(MySlider* slider, SliderThumb* thumb, MoveState action) {
 		const float val = thumb->getValue(); // 0 <= val <= 1
 		const float delay = 0.08;
-		float maxAngle = 20; 
+		float maxAngle = 22; 
 
 		switch (slider->m_fields->m_icon) {
-			case IconType::Ship: {maxAngle *= -1;}
+			case IconType::Ship:
+			case IconType::Swing: {maxAngle *= -1;}
 			case IconType::Cube:
 			case IconType::Ufo:
 			case IconType::Jetpack: {
 				if (action == MoveState::Middle) {
 					float speed = slider->getValue() - slider->m_fields->m_oldValue;
 					int sign = speed >= 0 ? 1 : -1;
-					float angle = sign * maxAngle * std::min(1.f, speed * sign * 50.f);
+					float angle = sign * maxAngle * std::min(1.f, speed * sign * 50.f * GLOBAL.m_settings.m_animStrength);
 
 					slider->m_fields->m_onMoveBaseNode->runAction(CCSequence::create(
 						CCRotateTo::create(delay, angle), nullptr)); // smooth rotation

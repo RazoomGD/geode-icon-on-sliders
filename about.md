@@ -3,7 +3,7 @@
 Replaces the default slider thumb with the player icon
 
 In settings you can choose which icon is used for the sliders and which sliders are affected by this mod.
-You can also enable <cy>animations</c> for ball, robot ans spider there.
+You can also enable <cy>animations</c> and adjust other parameters there.
 
 
 ## Contribution
