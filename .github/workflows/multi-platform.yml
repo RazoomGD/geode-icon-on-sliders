@@ -1,4 +1,4 @@
-name: Release
+name: Build Geode Mod
 
 on:
   workflow_dispatch:
