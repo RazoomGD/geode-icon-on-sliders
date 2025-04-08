@@ -1,3 +1,6 @@
+# 1.1.6
+- IOS support
+
 # 1.1.5
 - add swing animation
 - add "animation strength" option
