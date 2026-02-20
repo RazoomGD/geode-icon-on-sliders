@@ -1,3 +1,9 @@
+# 1.1.7
+- GD 2.2081 support
+- fixed cascade opacity bug
+- increase animation strength range
+- <cr>remove 'More Icons' support until it's updated</c>
+
 # 1.1.6
 - IOS support
 

@@ -1,14 +1,14 @@
 {
-	"geode": "4.3.1",
+	"geode": "5.0.0-beta.3",
 	"gd": {
-		"win": "2.2074",
-		"android": "2.2074",
-		"mac": "2.2074",
-		"ios": "2.2074"
+		"win": "2.2081",
+		"android": "2.2081",
+		"mac": "2.2081",
+		"ios": "2.2081"
 	},
 	"id": "razoom.icon_on_sliders",
 	"name": "Icon On Sliders",
-	"version": "v1.1.6",
+	"version": "v1.1.7",
 	"developer": "RaZooM",
 	"tags": ["customization"],
 	"links": {
@@ -67,7 +67,7 @@
 		"anim-strength": {
 			"type": "float",
 			"default": 1.0,
-			"max": 2.0,
+			"max": 3.0,
 			"min": 0.1,
 			"name": "Animation strength",
 			"description": "(related to the <cp>cube</c>, <cp>ship</c>, <cp>ufo</c>, <cp>swing</c> and <cp>jetpack</c> animations)\nHow much the icon tilts when moving.",

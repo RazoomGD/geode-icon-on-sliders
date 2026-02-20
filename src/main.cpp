@@ -11,26 +11,26 @@ using namespace geode::prelude;
 #define USER_OBJ_ID "IOS_obj"
 
 // more icons support
-using MoreIconsSimplePlayerEvent = geode::DispatchEvent<SimplePlayer*, std::string, IconType>;
+// using MoreIconsSimplePlayerEvent = geode::DispatchEvent<SimplePlayer*, std::string, IconType>;
 
 // is player using icon from "more icons"
-static std::string moreIconsGetActiveIcon(IconType type) {
-	if (!Loader::get()->isModLoaded("hiimjustin000.more_icons")) return "";
-	std::string savedType;
-	switch (type) {
-		case IconType::Cube: savedType = "icon"; break;
-		case IconType::Ship: savedType = "ship"; break;
-		case IconType::Ball: savedType = "ball"; break;
-		case IconType::Ufo: savedType = "ufo"; break;
-		case IconType::Wave: savedType = "wave"; break;
-		case IconType::Robot: savedType = "robot"; break;
-		case IconType::Spider: savedType = "spider"; break;
-		case IconType::Swing: savedType = "swing"; break;
-		case IconType::Jetpack: savedType = "jetpack"; break;
-		default: return "";
-	}
-	return Loader::get()->getLoadedMod("hiimjustin000.more_icons")->getSavedValue<std::string>(savedType, "");
-}
+// static std::string moreIconsGetActiveIcon(IconType type) {
+// 	if (!Loader::get()->isModLoaded("hiimjustin000.more_icons")) return "";
+// 	std::string savedType;
+// 	switch (type) {
+// 		case IconType::Cube: savedType = "icon"; break;
+// 		case IconType::Ship: savedType = "ship"; break;
+// 		case IconType::Ball: savedType = "ball"; break;
+// 		case IconType::Ufo: savedType = "ufo"; break;
+// 		case IconType::Wave: savedType = "wave"; break;
+// 		case IconType::Robot: savedType = "robot"; break;
+// 		case IconType::Spider: savedType = "spider"; break;
+// 		case IconType::Swing: savedType = "swing"; break;
+// 		case IconType::Jetpack: savedType = "jetpack"; break;
+// 		default: return "";
+// 	}
+// 	return Loader::get()->getLoadedMod("hiimjustin000.more_icons")->getSavedValue<std::string>(savedType, "");
+// }
 
 struct {
 	struct {
@@ -94,10 +94,9 @@ struct SliderInfo : CCObject {
 $on_mod(Loaded) {
 	GLOBAL.m_settings.update();
 	// listen for settings update
-	listenForAllSettingChangesV3([](std::shared_ptr<SettingV3> idk) {
+	listenForAllSettingChanges([](std::string_view key, std::shared_ptr<SettingV3> idk) {
 		GLOBAL.m_settings.update();
-	},
-	Mod::get());
+	});
 }
 
 
@@ -125,6 +124,15 @@ void lightenColor(ccColor3B* col) {
 	col->b = std::min(255, (int)col->b - (int)(col->b * mul) + (int)add);
 }
 
+void setCascadeOpacityDeep(bool val, CCNode* node) {
+	if (auto spr = typeinfo_cast<CCSprite*>(node)) {
+		spr->setCascadeOpacityEnabled(val);
+	}
+	for (auto ch : node->getChildrenExt()) {
+		setCascadeOpacityDeep(val, ch);
+	}
+}
+
 // create player icon and put it on base node
 SimplePlayer* getPlayerFrame(IconType type, bool forceGlow, bool forceNoGlow, bool lighterCol, CCNode* base) {
     auto gm = GameManager::sharedState();
@@ -140,15 +148,15 @@ SimplePlayer* getPlayerFrame(IconType type, bool forceGlow, bool forceNoGlow, bo
 	SimplePlayer* player = SimplePlayer::create(0);
 	base->addChild(player);
 
-	std::string moreIconsName = moreIconsGetActiveIcon(type);
-	if (!moreIconsName.empty()) {
-		MoreIconsSimplePlayerEvent("hiimjustin000.more_icons/simple-player", player, moreIconsName, type).post();
-		if (!player->getUserObject("hiimjustin000.more_icons/name")) {
-			player->updatePlayerFrame(getPlayerIconIndex(type), type);
-		}
-	} else {
+	// std::string moreIconsName = moreIconsGetActiveIcon(type);
+	// if (!moreIconsName.empty()) {
+	// 	MoreIconsSimplePlayerEvent("hiimjustin000.more_icons/simple-player", player, moreIconsName, type).post();
+	// 	if (!player->getUserObject("hiimjustin000.more_icons/name")) {
+	// 		player->updatePlayerFrame(getPlayerIconIndex(type), type);
+	// 	}
+	// } else {
 		player->updatePlayerFrame(getPlayerIconIndex(type), type);
-	}
+	// }
 
 	player->setColor(col1);
 	player->setSecondColor(col2);
@@ -161,15 +169,15 @@ SimplePlayer* getPlayerFrame(IconType type, bool forceGlow, bool forceNoGlow, bo
 		SimplePlayer* cube = SimplePlayer::create(0);
 		base->addChild(cube, -1);
 
-		moreIconsName = moreIconsGetActiveIcon(IconType::Cube);
-		if (!moreIconsName.empty()) {
-			MoreIconsSimplePlayerEvent("hiimjustin000.more_icons/simple-player", cube, moreIconsName, IconType::Cube).post();
-			if (!cube->getUserObject("hiimjustin000.more_icons/name")) {
-				cube->updatePlayerFrame(gm->getPlayerFrame(), IconType::Cube);
-			}
-		} else {
+		// moreIconsName = moreIconsGetActiveIcon(IconType::Cube);
+		// if (!moreIconsName.empty()) {
+		// 	MoreIconsSimplePlayerEvent("hiimjustin000.more_icons/simple-player", cube, moreIconsName, IconType::Cube).post();
+		// 	if (!cube->getUserObject("hiimjustin000.more_icons/name")) {
+		// 		cube->updatePlayerFrame(gm->getPlayerFrame(), IconType::Cube);
+		// 	}
+		// } else {
 			cube->updatePlayerFrame(gm->getPlayerFrame(), IconType::Cube);
-		}
+		// }
 
 		cube->setColor(col1);
 		cube->setSecondColor(col2);
@@ -240,6 +248,9 @@ class $modify(MySlider, Slider) {
 		// thumb->setDisabledImage(player); // invisible (unused)
 		thumb->setNormalImage(base); // static
 		thumb->setSelectedImage(base2); // on move
+
+		setCascadeOpacityDeep(true, base);
+		setCascadeOpacityDeep(true, base2);
 
 		m_fields->m_staticImage = player;
 		m_fields->m_onMoveImage = player2;
