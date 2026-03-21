@@ -1,3 +1,7 @@
+# 1.1.8
+- add a fix for unevenly scaled sliders in editor
+- <cb>bring back 'More Icons' support</c>
+
 # 1.1.7
 - GD 2.2081 support
 - fixed cascade opacity bug

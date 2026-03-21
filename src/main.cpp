@@ -10,6 +10,10 @@ using namespace geode::prelude;
 // common user object id for this mod (IOS = icon on sliders)
 #define USER_OBJ_ID "IOS_obj"
 
+#define MORE_ICONS_EVENTS
+#include <hiimjustin000.more_icons/include/MoreIcons.hpp>
+
+
 // more icons support
 // using MoreIconsSimplePlayerEvent = geode::DispatchEvent<SimplePlayer*, std::string, IconType>;
 
@@ -42,6 +46,7 @@ struct {
 		int m_glowMode; // 1 - default, 2 - on touch, 3 - force
 		bool m_lightenOnTouch;
 		float m_animStrength;
+		bool m_fixSquishedSliders;
 
 		short m_updateId = 1; // needed for slider preview in settings
 
@@ -63,6 +68,8 @@ struct {
 
 			m_glowMode = std::atoi(Mod::get()->getSettingValue<std::string>("glow-mode").c_str());
 			m_glowMode = (m_glowMode <= 0 || m_glowMode >= 4) ? 1 : m_glowMode; // validate
+
+			m_fixSquishedSliders = Mod::get()->getSettingValue<bool>("fix-squished-sliders");
 
 			m_updateId++;
 		}
@@ -145,6 +152,7 @@ SimplePlayer* getPlayerFrame(IconType type, bool forceGlow, bool forceNoGlow, bo
 		lightenColor(&col2);
 	}
 
+
 	SimplePlayer* player = SimplePlayer::create(0);
 	base->addChild(player);
 
@@ -156,6 +164,7 @@ SimplePlayer* getPlayerFrame(IconType type, bool forceGlow, bool forceNoGlow, bo
 	// 	}
 	// } else {
 		player->updatePlayerFrame(getPlayerIconIndex(type), type);
+		more_icons::updateSimplePlayer(player, type);
 	// }
 
 	player->setColor(col1);
@@ -177,6 +186,7 @@ SimplePlayer* getPlayerFrame(IconType type, bool forceGlow, bool forceNoGlow, bo
 		// 	}
 		// } else {
 			cube->updatePlayerFrame(gm->getPlayerFrame(), IconType::Cube);
+			more_icons::updateSimplePlayer(cube, IconType::Cube);
 		// }
 
 		cube->setColor(col1);
@@ -220,8 +230,6 @@ class $modify(MySlider, Slider) {
 	};
 
 	void upgradeSlider() {
-		m_fields->m_isAffected = true;
-
 		auto thumb = this->getThumb();
 
 		// SliderThumb -> Base -> Node -> SimplePlayer
@@ -258,7 +266,29 @@ class $modify(MySlider, Slider) {
 		m_fields->m_onMoveBaseNode = node2;
 	}
 
-	// p2 - ???, p3 - groove texture, p4 - static texture, p5 - selected texture
+	void fixSliderIfSquished(const char* grooveTexture) {
+		if (!m_groove || !grooveTexture) {
+			return;
+		}
+		queueInMainThread([this, grooveTexture](){
+			float sx = m_groove->getScaleX();
+			float sy = m_groove->getScaleY();
+			if (sx != sy) {
+				float maxScale = std::max(sx, sy);
+				auto newGroove = NineSlice::create(grooveTexture);
+				auto desiredSize = m_groove->getScaledContentSize();
+				newGroove->setScale(maxScale);
+				newGroove->setScaledContentSize(desiredSize);
+				addChild(newGroove);
+				newGroove->setPosition(m_groove->getPosition());
+				newGroove->setZOrder(-1);
+				newGroove->setID("groove"_spr);
+				m_groove->setOpacity(0);
+			}
+		});
+	}
+
+	// p2 - ???, p3 - groove texture, p4 - static texture, p5 - selected texture, p6 - scale
 	$override
 	bool init(CCNode *p0, SEL_MenuHandler p1, const char *p2, const char *p3, const char *p4, const char *p5, float p6) {
 		if (!Slider::init(p0, p1, p2, p3, p4, p5, p6)) return false;
@@ -271,7 +301,7 @@ class $modify(MySlider, Slider) {
 				if (std::strcmp(p4, "sliderthumb.png") == 0) {
 					// this is trigger slider
 					if (GLOBAL.m_settings.m_affectTriggerSliders) {
-						upgradeSlider();
+						m_fields->m_isAffected = true;
 					}
 				} else if (std::strcmp(p4, "GJ_colorThumbBtn.png") == 0) {
 					// this is color slider
@@ -279,7 +309,7 @@ class $modify(MySlider, Slider) {
 				} else if (std::strcmp(p4, "GJ_moveBtn.png") == 0) {
 					// this is position slider
 					if (GLOBAL.m_settings.m_affectEditorSlider) {
-						upgradeSlider();
+						m_fields->m_isAffected = true;
 					}
 				} else {
 					// what!?
@@ -287,7 +317,14 @@ class $modify(MySlider, Slider) {
 			}
 		} else {
 			// we are not in the editor now
+			m_fields->m_isAffected = true;
+		}
+
+		if (m_fields->m_isAffected) {
 			upgradeSlider();
+			if (GLOBAL.m_settings.m_fixSquishedSliders) {
+				fixSliderIfSquished(p3);
+			}
 		}
 
 		// replace selector if this slider needs to be animated

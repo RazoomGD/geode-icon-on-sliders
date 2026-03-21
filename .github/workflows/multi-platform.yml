@@ -45,8 +45,9 @@ jobs:
           # bindings-ref: "foobar"
           combine: true
           target: ${{ matrix.config.target }}
-          cli: nightly # remove once iOS finishes
-          sdk: nightly # remove once iOS finishes
+          # cli: nightly # remove once iOS finishes
+          # sdk: nightly # remove once iOS finishes
+          sdk: "5.3.0" # remove once iOS finishes
 
   package:
     name: Package builds
@@ -56,8 +57,8 @@ jobs:
     steps:
       - uses: geode-sdk/build-geode-mod/combine@main
         id: build
-        with:
-          cli: nightly # remove once iOS finishes
+        # with:
+        #   cli: nightly # remove once iOS finishes
 
       - uses: actions/upload-artifact@v4
         with:

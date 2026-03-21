@@ -1,5 +1,5 @@
 {
-	"geode": "5.0.0-beta.3",
+	"geode": "5.3.0",
 	"gd": {
 		"win": "2.2081",
 		"android": "2.2081",
@@ -8,7 +8,7 @@
 	},
 	"id": "razoom.icon_on_sliders",
 	"name": "Icon On Sliders",
-	"version": "v1.1.7",
+	"version": "v1.1.8",
 	"developer": "RaZooM",
 	"tags": ["customization"],
 	"links": {
@@ -16,6 +16,13 @@
 		"community": "https://discord.gg/wcWvtKHP8n"
 	},
 	"description": "Set your icon as a slider thumb",
+
+	"dependencies": {
+		"hiimjustin000.more_icons": {
+            "version": ">=v2.0.6",
+			"required": false
+        }
+	},
 
 	"settings": {
 		"is-enabled": {
@@ -42,7 +49,7 @@
 			"type": "string",
 			"name": "Icon",
 			"description": "The icon shown on slider",
-			"default": "1: Cube",
+			"default": "3: Ball",
 			"one-of": ["1: Cube", "2: Ship", "3: Ball", "4: Ufo", "5: Wave", "6: Robot", "7: Spider", "8: Swing", "9: Jetpack"]
 		},
 		"animate": {
@@ -93,6 +100,17 @@
 			"type": "bool",
 			"name": "Trigger sliders",
 			"description": "Whether the sliders in the triggers are affected",
+			"default": true
+		},
+
+		"title-4": {
+			"type": "title",
+			"name": "Fixes and improvements"
+		},
+		"fix-squished-sliders": {
+			"type": "bool",
+			"name": "Fix squished sliders",
+			"description": "Fix unevenly scaled sliders in editor (e.g sliders in move trigger, rotate trigger, every area trigger, particle generator).\n\n<cg>Just to be clear, the bug itself is purely visual</c>",
 			"default": true
 		}
 	}
