@@ -266,10 +266,11 @@ class $modify(MySlider, Slider) {
 		m_fields->m_onMoveBaseNode = node2;
 	}
 
-	void fixSliderIfSquished(const char* grooveTexture) {
+	void fixSliderIfSquashed(const char* grooveTexture) {
 		if (!m_groove || !grooveTexture) {
 			return;
 		}
+		this->retain();
 		queueInMainThread([this, grooveTexture](){
 			float sx = m_groove->getScaleX();
 			float sy = m_groove->getScaleY();
@@ -285,6 +286,7 @@ class $modify(MySlider, Slider) {
 				newGroove->setID("groove"_spr);
 				m_groove->setOpacity(0);
 			}
+			this->release();
 		});
 	}
 
@@ -323,7 +325,7 @@ class $modify(MySlider, Slider) {
 		if (m_fields->m_isAffected) {
 			upgradeSlider();
 			if (GLOBAL.m_settings.m_fixSquishedSliders) {
-				fixSliderIfSquished(p3);
+				fixSliderIfSquashed(p3);
 			}
 		}
 
