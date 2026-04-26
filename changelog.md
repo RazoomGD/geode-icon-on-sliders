@@ -1,3 +1,9 @@
+# 1.1.10
+- fix broken texture z-ordering
+
+# 1.1.9
+- fix potential crash when slider is not added to the node tree
+
 # 1.1.8
 - add a fix for unevenly scaled sliders in editor
 - <cb>bring back 'More Icons' support</c>

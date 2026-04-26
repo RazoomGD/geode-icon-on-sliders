@@ -279,12 +279,13 @@ class $modify(MySlider, Slider) {
 				auto newGroove = NineSlice::create(grooveTexture);
 				auto desiredSize = m_groove->getScaledContentSize();
 				newGroove->setScale(maxScale);
-				newGroove->setScaledContentSize(desiredSize);
+				newGroove->setScaledContentSize(desiredSize + ccp(2, 0));
 				addChild(newGroove);
 				newGroove->setPosition(m_groove->getPosition());
 				newGroove->setZOrder(-1);
 				newGroove->setID("groove"_spr);
 				m_groove->setOpacity(0);
+				m_groove->setZOrder(-2);
 			}
 			this->release();
 		});
